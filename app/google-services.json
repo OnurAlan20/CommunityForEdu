@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "334250529970",
+    "project_id": "communityforedu-a51d4",
+    "storage_bucket": "communityforedu-a51d4.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:334250529970:android:e62538c64968b2043a65ab",
+        "android_client_info": {
+          "package_name": "com.sinamekidev.commforedu"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "334250529970-1bgm7pg84ducd6k27r7b3pqh8471dbi3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCCC_XpU1Z6A0WQJ0XCTLLWHM4wu5ipzkU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "334250529970-1bgm7pg84ducd6k27r7b3pqh8471dbi3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

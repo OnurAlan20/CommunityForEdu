@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">CommForEdu</string>
+    <string name="title_activity_login_register">LoginRegisterActivity</string>
+</resources>
