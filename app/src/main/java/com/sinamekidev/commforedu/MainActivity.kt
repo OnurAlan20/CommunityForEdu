@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.sinamekidev.commforedu.network.FirebaseObject
+import com.sinamekidev.commforedu.sarpdora.HomeScreen
 import com.sinamekidev.commforedu.ui.theme.CommForEduTheme
 
 class MainActivity : ComponentActivity() {
@@ -22,7 +23,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    Greeting(FirebaseObject.user!!.name)
+                    HomeScreen()
                 }
             }
         }

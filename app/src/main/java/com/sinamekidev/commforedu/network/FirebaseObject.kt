@@ -1,12 +1,15 @@
 package com.sinamekidev.commforedu.network
 
+import androidx.compose.runtime.MutableState
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.sinamekidev.commforedu.models.Post
 import com.sinamekidev.commforedu.models.User
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
@@ -92,5 +95,31 @@ object FirebaseObject {
     }
     fun initUser(user: FirebaseUser){
         currentUser = user
+    }
+    fun getUserByID(user_id:String):User{
+        var retUser:User = User("","","","", school = "")
+        db.collection("Users").document(user_id).get().addOnSuccessListener {
+            retUser = User(it["name"] as String, it["description"] as String,
+                it["profile_url"] as String,it["uid"] as String, it["postList"] as ArrayList<String>
+                ,it["school"] as String
+            )
+        }
+        return retUser
+    }
+    fun getPosts(mutablePostList: MutableState<ArrayList<Post>>){
+        GlobalScope.launch {
+            db.collection("Posts").addSnapshotListener{data,error ->
+                if (data != null) {
+                    for (post in data.documentChanges){
+                        post.document
+                        var new_post = Post(post.document["author"] as String,post.document["text"] as String,post.document["image_url"] as String)
+                        mutablePostList.value.add(new_post)
+                    }
+                }
+            }
+        }
+    }
+    fun addPost(){
+
     }
 }
