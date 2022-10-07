@@ -71,7 +71,7 @@ fun ForumScreen() {
             Column(modifier = Modifier
                 .fillMaxWidth()
                 .height(60.dp)) {
-                ScafoldCompose()
+                ScafoldCompose("Community Forum")
             }
 
             Column(modifier = Modifier
@@ -102,9 +102,9 @@ fun ForumScreenTest(){
 }
 
 @Composable
-fun ScafoldCompose(){
+fun ScafoldCompose(topAppBarText:String){
     Scaffold(
-        topBar = { TopAppBarCompose()},
+        topBar = { TopAppBarCompose(topAppBarText)},
         content = {ContentCompose()},
 
     )
@@ -121,11 +121,11 @@ fun ContentCompose(){
 }
 
 @Composable
-fun TopAppBarCompose(){
+fun TopAppBarCompose(topAppBarText:String){
     val context = LocalContext.current
 
     TopAppBar(
-        title = { Text("Community Forum", fontSize = 20.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+        title = { Text(topAppBarText, fontSize = 20.sp, maxLines = 1, overflow = TextOverflow.Ellipsis) },
         navigationIcon = {
             IconButton(onClick = {
                 Toast.makeText(context,"Home", Toast.LENGTH_SHORT).show()
