@@ -1,10 +1,13 @@
 package com.sinamekidev.commforedu.network
 
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.sinamekidev.commforedu.models.Post
@@ -12,13 +15,16 @@ import com.sinamekidev.commforedu.models.User
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 object FirebaseObject {
     private lateinit var auth: FirebaseAuth
     private lateinit var currentUser:FirebaseUser
     var user: User? = null
     val db = Firebase.firestore
-    fun initFirebase(){
+    fun initFirebase(on_finished: () -> Unit){
         auth = Firebase.auth
         if(auth.currentUser != null){
             db.collection("Users").document(auth.currentUser!!.uid).get().addOnSuccessListener {
@@ -28,6 +34,8 @@ object FirebaseObject {
                 )
                 println("USER INIT SUCCESS")
                 println("WELCOME ${user!!.name}")
+
+                on_finished.invoke()
             }
         }
     }
@@ -96,30 +104,60 @@ object FirebaseObject {
     fun initUser(user: FirebaseUser){
         currentUser = user
     }
-    fun getUserByID(user_id:String):User{
+    fun getUserByID(user_id:String ,on_finished: (user:User) -> Unit = {}):User{
+
         var retUser:User = User("","","","", school = "")
         db.collection("Users").document(user_id).get().addOnSuccessListener {
             retUser = User(it["name"] as String, it["description"] as String,
                 it["profile_url"] as String,it["uid"] as String, it["postList"] as ArrayList<String>
                 ,it["school"] as String
             )
+            on_finished.invoke(retUser)
         }
         return retUser
     }
-    fun getPosts(mutablePostList: MutableState<ArrayList<Post>>){
+    fun getPosts(mutablePostList: SnapshotStateList<Post>){
         GlobalScope.launch {
-            db.collection("Posts").addSnapshotListener{data,error ->
+            db.collection("Posts").orderBy("date",Query.Direction.DESCENDING).addSnapshotListener{ data, error ->
                 if (data != null) {
                     for (post in data.documentChanges){
                         post.document
-                        var new_post = Post(post.document["author"] as String,post.document["text"] as String,post.document["image_url"] as String)
-                        mutablePostList.value.add(new_post)
+                        println("POST: " +post.document.data.get("author"))
+                        var new_post = Post(post.document.data["author"] as String,post.document.data["text"] as String,post.document.data["image_url"] as String)
+                        mutablePostList.add(new_post)
                     }
                 }
             }
         }
     }
-    fun addPost(){
-
+    fun updateUser(user:User){
+        GlobalScope.launch(Dispatchers.IO){
+            db.collection("Users").document(user.uid).set(user).addOnCompleteListener {
+                if (it.isSuccessful){
+                    println("${user.name} succesfully updated")
+                }
+            }
+        }
+    }
+    fun addPost(new_Post:Post,on_finished: () -> Unit){
+        GlobalScope.launch(Dispatchers.IO){
+            var post_uuid = UUID.randomUUID()
+            db.collection("Posts").document(post_uuid.toString()).set(new_Post).addOnCompleteListener {
+                if (it.isSuccessful){
+                   val dateMap = HashMap<String,Any>()
+                    dateMap.put("date",FieldValue.serverTimestamp())
+                    db.collection("Posts").document(post_uuid.toString()).update(dateMap).addOnSuccessListener {
+                        getUserByID(user!!.uid){user ->
+                            user.postList.add(post_uuid.toString())
+                            updateUser(user)
+                            on_finished.invoke()
+                        }
+                    }
+                }
+                else{
+                    println("FAILED:${it.exception!!.localizedMessage}")
+                }
+            }
+        }
     }
 }

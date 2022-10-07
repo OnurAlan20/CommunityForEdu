@@ -21,7 +21,13 @@ import com.sinamekidev.commforedu.ui.theme.CommForEduTheme
 
 class LoginRegisterActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        FirebaseObject.initFirebase()
+        FirebaseObject.initFirebase{
+            if(FirebaseObject.user != null){
+                val intent = Intent(this,MainActivity::class.java)
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                startActivity(intent)
+            }
+        }
         super.onCreate(savedInstanceState)
         setContent {
             CommForEduTheme {

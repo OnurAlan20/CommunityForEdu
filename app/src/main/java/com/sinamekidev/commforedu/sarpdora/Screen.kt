@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -269,51 +271,95 @@ fun MainNavigation(navController: NavHostController){
         }
     }
 }
-@Preview
+
 @Composable
 fun HomeNavigation(){
+    var el = Post("","","")
     var posts = remember {
-        mutableStateOf(arrayListOf<Post>())
+        mutableStateListOf(el)
     }
-   // FirebaseObject.getPosts(posts)
+    FirebaseObject.getPosts(posts)
     Surface(modifier = Modifier.fillMaxSize(), color = Color.Transparent) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box {
                 LazyColumn(){
-                    items(posts.value){
-                        HomePostLayout(it)
-                        LikeShareCommentSection()
-                        Divider(modifier = Modifier.fillMaxWidth(), thickness = 1.dp, color = MainBg)
+                    items(posts){
+                        if(!it.author.equals("")) {
+                            HomePostLayout(it)
+                            LikeShareCommentSection()
+                            Divider(modifier = Modifier.fillMaxWidth(), thickness = 1.dp, color = MainBg)
+                        }
                     }
                 }
-                Row(modifier = Modifier
-                    .fillMaxSize()
-                    .padding(48.dp),
-                    horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.Bottom){
-                    SharePostButton()
+
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+fun ProfileNavigation(){
+    var post_text = remember{
+        mutableStateOf("")
+    }
+    Surface(modifier = Modifier.fillMaxSize(), color = Color.Transparent) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            ) {
+            CreatePostSection(post_text)
+            Row(modifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp), horizontalArrangement = Arrangement.End) {
+                Button(onClick = {
+                    FirebaseObject.addPost(
+                        Post(FirebaseObject.user!!.uid,post_text.value,"")){
+                        post_text.value = ""
+                    }
+                },
+                    colors = ButtonDefaults.buttonColors(backgroundColor = MainBg), shape = RoundedCornerShape(25.dp)) {
+                    Text(text = "Share", color = FontColor, fontSize = 20.sp)
                 }
             }
         }
     }
 }
 @Composable
-fun ProfileNavigation(){
-    Surface(modifier = Modifier.fillMaxSize(), color = Color.Transparent) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(text = "Profile Navigation Screen", color = Color.White)
+fun CreatePostSection(post_text:MutableState<String>){
+    Surface(modifier = Modifier
+        .fillMaxWidth()
+        .padding(top = 9.dp), color = Color.Transparent,
+        ){
+        Column(modifier = Modifier
+            .fillMaxHeight(0.3f)
+            .padding(horizontal = 10.dp)) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                TextField(value = post_text.value, onValueChange = {
+                    post_text.value = it
+                }, leadingIcon= {
+                    Column(verticalArrangement = Arrangement.SpaceBetween, modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(10.dp)) {
+                        Image(painter = painterResource(id = R.drawable.profile),
+                            contentDescription = "", modifier = Modifier.size(52.dp))
+                    }
+                }, placeholder = {
+                    Row() {
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(text = "Create post....", color = FontColor, fontSize = 26.sp)
+                    }
+                },modifier = Modifier.fillMaxSize())
+
+            }
         }
     }
 }
+
 @Composable
 fun SettingsNavigation(){
     Surface(modifier = Modifier.fillMaxSize(), color = Color.Transparent) {
@@ -339,6 +385,9 @@ fun SharePostButton(onCick:() -> Unit = {}){
 fun HomePostLayout(post: Post){
     var imageOk = post.image_url != null
     var textOk = post.text != null
+    var show = remember {
+        mutableStateOf(false)
+    }
     Surface(modifier = Modifier
         .fillMaxWidth(), color = Color.Transparent) {
         Column(modifier = Modifier
@@ -355,9 +404,15 @@ fun HomePostLayout(post: Post){
                     var postUser = remember {
                         mutableStateOf(User("","","","", school = ""))
                     }
-                    postUser.value = FirebaseObject.getUserByID(post.author)
-                    Text(text = postUser.value.name, color = FontColor, fontWeight = FontWeight.SemiBold, fontSize = 22.sp)
-                    Text(text = postUser.value.description, color = Color(0xE8B6B6B6), fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                    println("USER ID: ${post.author}")
+                    FirebaseObject.getUserByID(post.author){
+                        postUser.value = it
+                        show.value = true
+                    }
+                    AnimatedVisibility(show.value){
+                        Text(text = postUser.value.name, color = FontColor, fontWeight = FontWeight.SemiBold, fontSize = 22.sp)
+                        Text(text = postUser.value.description, color = Color(0xE8B6B6B6), fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                    }
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
@@ -370,7 +425,6 @@ fun HomePostLayout(post: Post){
 
             if(imageOk){
                 Spacer(modifier = Modifier.height(8.dp))
-
             }
 
         }
