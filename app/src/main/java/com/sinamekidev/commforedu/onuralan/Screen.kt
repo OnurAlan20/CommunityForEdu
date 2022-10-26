@@ -173,7 +173,7 @@ fun AccountInfo (email:MutableState<String>,password:MutableState<String>){
     }
 }
 
-//---------------------------------------------------------------
+//----------------------------------------------------------------
 //Register Screen
 @Composable
 fun RegisterScreen(navController: NavController){
